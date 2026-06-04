@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -8,7 +9,7 @@ using UnityEditor.Animations;
 using System.IO;
 
 /// <summary>
-/// Editor utility to set up the Level_01 scene properly.
+/// Editor utility to set up the Level_01 scene and build the game properly.
 /// </summary>
 public class SceneSetupEditor : EditorWindow
 {
@@ -43,6 +44,41 @@ public class SceneSetupEditor : EditorWindow
         UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
 
         Debug.Log("[SceneSetup] Scene setup complete! Press Play to start the game.");
+    }
+
+    [MenuItem("KimDong/Build Game")]
+    public static void BuildGame()
+    {
+        string buildPath = "Builds/Windows/KimDong.exe";
+        string[] scenes = { "Assets/Level_01.unity" };
+
+        Debug.Log("[Build] Starting standalone Windows build...");
+
+        // Ensure directory exists
+        string directory = Path.GetDirectoryName(buildPath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
+        buildPlayerOptions.scenes = scenes;
+        buildPlayerOptions.locationPathName = buildPath;
+        buildPlayerOptions.target = BuildTarget.StandaloneWindows64;
+        buildPlayerOptions.options = BuildOptions.None;
+
+        BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
+        BuildSummary summary = report.summary;
+
+        if (summary.result == BuildResult.Succeeded)
+        {
+            Debug.Log("[Build] Build succeeded! Size: " + summary.totalSize + " bytes");
+            EditorUtility.RevealInFinder(buildPath);
+        }
+        else if (summary.result == BuildResult.Failed)
+        {
+            Debug.LogError("[Build] Build failed.");
+        }
     }
 
     [MenuItem("KimDong/List Model Animations")]
