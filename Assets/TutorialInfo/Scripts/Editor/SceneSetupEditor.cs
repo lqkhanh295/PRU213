@@ -317,7 +317,7 @@ public class SceneSetupEditor : EditorWindow
             var state = rootStateMachine.AddState("PlayingFlute");
             state.motion = fluteClip;
             var t = rootStateMachine.AddAnyStateTransition(state);
-            t.AddCondition(AnimatorConditionMode.Trigger, 0, "PlayingFlute");
+            t.AddCondition(AnimatorConditionMode.If, 0, "PlayingFlute");
             var tBack = state.AddTransition(locomotionState);
             tBack.hasExitTime = true;
         }
@@ -326,7 +326,7 @@ public class SceneSetupEditor : EditorWindow
             var state = rootStateMachine.AddState("ChoppingWood");
             state.motion = woodClip;
             var t = rootStateMachine.AddAnyStateTransition(state);
-            t.AddCondition(AnimatorConditionMode.Trigger, 0, "ChoppingWood");
+            t.AddCondition(AnimatorConditionMode.If, 0, "ChoppingWood");
             var tBack = state.AddTransition(locomotionState);
             tBack.hasExitTime = true;
         }
@@ -335,7 +335,7 @@ public class SceneSetupEditor : EditorWindow
             var state = rootStateMachine.AddState("HerdingBuffalo");
             state.motion = buffaloClip;
             var t = rootStateMachine.AddAnyStateTransition(state);
-            t.AddCondition(AnimatorConditionMode.Trigger, 0, "HerdingBuffalo");
+            t.AddCondition(AnimatorConditionMode.If, 0, "HerdingBuffalo");
             var tBack = state.AddTransition(locomotionState);
             tBack.hasExitTime = true;
         }
@@ -346,7 +346,7 @@ public class SceneSetupEditor : EditorWindow
             var dieState = rootStateMachine.AddState("Die");
             dieState.motion = dieClip;
             var t = rootStateMachine.AddAnyStateTransition(dieState);
-            t.AddCondition(AnimatorConditionMode.Trigger, 0, "Die");
+            t.AddCondition(AnimatorConditionMode.If, 0, "Die");
         }
 
         return controller;
@@ -386,7 +386,7 @@ public class SceneSetupEditor : EditorWindow
             var dieState = rootStateMachine.AddState("Die");
             dieState.motion = dieClip;
             var t = rootStateMachine.AddAnyStateTransition(dieState);
-            t.AddCondition(AnimatorConditionMode.Trigger, 0, "Die");
+            t.AddCondition(AnimatorConditionMode.If, 0, "Die");
         }
 
         return controller;
@@ -418,13 +418,13 @@ public class SceneSetupEditor : EditorWindow
 
         // Transitions
         var tFollow = rootStateMachine.AddAnyStateTransition(followingState);
-        tFollow.AddCondition(AnimatorConditionMode.Trigger, 0, "Following");
+        tFollow.AddCondition(AnimatorConditionMode.If, 0, "Following");
 
         var tWait = rootStateMachine.AddAnyStateTransition(waitingState);
-        tWait.AddCondition(AnimatorConditionMode.Trigger, 0, "Waiting");
+        tWait.AddCondition(AnimatorConditionMode.If, 0, "Waiting");
 
         var tHide = rootStateMachine.AddAnyStateTransition(hidingState);
-        tHide.AddCondition(AnimatorConditionMode.Trigger, 0, "Hiding");
+        tHide.AddCondition(AnimatorConditionMode.If, 0, "Hiding");
 
         rootStateMachine.defaultState = waitingState;
 
