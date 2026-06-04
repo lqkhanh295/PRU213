@@ -11,7 +11,27 @@ using UnityEngine.Rendering.Universal;
 public class SceneBootstrapper : MonoBehaviour
 {
     [Header("Auto Build")]
-    [SerializeField] public bool buildOnStart = false; // Đã đổi thành false để đợi Main Menu
+    [SerializeField] public bool buildOnStart = false;
+
+    [Header("3D Models Prefabs")]
+    [SerializeField] public GameObject playerModel;
+    [SerializeField] public GameObject enemyModel;
+    [SerializeField] public GameObject escortModel;
+    [SerializeField] public GameObject stiltHouseModel;
+    [SerializeField] public GameObject watchtowerModel;
+    [SerializeField] public GameObject mountainModel;
+    [SerializeField] public GameObject bushModel;
+    [SerializeField] public GameObject treeModel;
+    [SerializeField] public GameObject bambooModel;
+    [SerializeField] public GameObject lanternModel;
+    [SerializeField] public GameObject letterModel;
+    [SerializeField] public GameObject flagModel;
+    [SerializeField] public GameObject fenceModel;
+
+    [Header("Animator Controllers")]
+    [SerializeField] public RuntimeAnimatorController playerController;
+    [SerializeField] public RuntimeAnimatorController enemyController;
+    [SerializeField] public RuntimeAnimatorController escortController;
 
     private GameObject playerObj;
     private List<GameObject> enemies = new();
@@ -121,128 +141,161 @@ public class SceneBootstrapper : MonoBehaviour
 
     private void BuildMountain(Vector3 pos, Vector3 size)
     {
-        GameObject mountain = new GameObject("Mountain");
-        mountain.transform.position = pos;
-        
-        // Tạo núi bằng nhiều khối đá lồng vào nhau
-        int chunks = 8;
-        for(int i=0; i<chunks; i++)
+        if (mountainModel != null)
         {
-            GameObject rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            rock.transform.SetParent(mountain.transform);
+            GameObject mt = Instantiate(mountainModel);
+            mt.name = "Mountain_3D";
+            mt.transform.position = pos;
+            mt.transform.localScale = new Vector3(size.x * 0.25f, size.y * 0.25f, size.z * 0.25f);
+            AddCollidersToModel(mt);
+        }
+        else
+        {
+            GameObject mountain = new GameObject("Mountain");
+            mountain.transform.position = pos;
             
-            float rx = Random.Range(-size.x/2, size.x/2);
-            float rz = Random.Range(-size.z/2, size.z/2);
-            float h = Random.Range(size.y * 0.5f, size.y);
-            
-            rock.transform.localPosition = new Vector3(rx, h/2, rz);
-            rock.transform.localScale = new Vector3(Random.Range(size.x*0.4f, size.x*0.8f), h, Random.Range(size.z*0.4f, size.z*0.8f));
-            rock.transform.rotation = Quaternion.Euler(0, Random.Range(0, 360f), 0);
-            
-            rock.GetComponent<Renderer>().material = MaterialLibrary.MountainRock();
+            // Tạo núi bằng nhiều khối đá lồng vào nhau
+            int chunks = 8;
+            for(int i=0; i<chunks; i++)
+            {
+                GameObject rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                rock.transform.SetParent(mountain.transform);
+                
+                float rx = Random.Range(-size.x/2, size.x/2);
+                float rz = Random.Range(-size.z/2, size.z/2);
+                float h = Random.Range(size.y * 0.5f, size.y);
+                
+                rock.transform.localPosition = new Vector3(rx, h/2, rz);
+                rock.transform.localScale = new Vector3(Random.Range(size.x*0.4f, size.x*0.8f), h, Random.Range(size.z*0.4f, size.z*0.8f));
+                rock.transform.rotation = Quaternion.Euler(0, Random.Range(0, 360f), 0);
+                
+                rock.GetComponent<Renderer>().material = MaterialLibrary.MountainRock();
+            }
         }
     }
 
     private void BuildWatchtower(Vector3 pos)
     {
-        GameObject tower = new GameObject("Watchtower");
-        tower.transform.position = pos;
-
-        // Cột
-        for(int x = -1; x <= 1; x+=2) {
-            for(int z = -1; z <= 1; z+=2) {
-                GameObject p = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                p.transform.SetParent(tower.transform);
-                p.transform.localPosition = new Vector3(x * 2.5f, 3f, z * 2.5f);
-                p.transform.localScale = new Vector3(0.4f, 3f, 0.4f);
-                p.GetComponent<Renderer>().material = MaterialLibrary.WoodLog();
-            }
+        if (watchtowerModel != null)
+        {
+            GameObject tower = Instantiate(watchtowerModel);
+            tower.name = "Watchtower_3D";
+            tower.transform.position = pos;
+            tower.transform.localScale = Vector3.one * 1.5f;
+            AddCollidersToModel(tower);
         }
-        
-        // Sàn
-        GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        floor.transform.SetParent(tower.transform);
-        floor.transform.localPosition = new Vector3(0, 6f, 0);
-        floor.transform.localScale = new Vector3(6f, 0.2f, 6f);
-        floor.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
-        
-        // Tường lan can
-        GameObject w1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        w1.transform.SetParent(tower.transform);
-        w1.transform.localPosition = new Vector3(0, 6.5f, 3f);
-        w1.transform.localScale = new Vector3(6f, 1f, 0.2f);
-        w1.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
+        else
+        {
+            GameObject tower = new GameObject("Watchtower");
+            tower.transform.position = pos;
 
-        GameObject w2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        w2.transform.SetParent(tower.transform);
-        w2.transform.localPosition = new Vector3(0, 6.5f, -3f);
-        w2.transform.localScale = new Vector3(6f, 1f, 0.2f);
-        w2.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
+            // Cột
+            for(int x = -1; x <= 1; x+=2) {
+                for(int z = -1; z <= 1; z+=2) {
+                    GameObject p = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    p.transform.SetParent(tower.transform);
+                    p.transform.localPosition = new Vector3(x * 2.5f, 3f, z * 2.5f);
+                    p.transform.localScale = new Vector3(0.4f, 3f, 0.4f);
+                    p.GetComponent<Renderer>().material = MaterialLibrary.WoodLog();
+                }
+            }
+            
+            // Sàn
+            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            floor.transform.SetParent(tower.transform);
+            floor.transform.localPosition = new Vector3(0, 6f, 0);
+            floor.transform.localScale = new Vector3(6f, 0.2f, 6f);
+            floor.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
+            
+            // Tường lan can
+            GameObject w1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            w1.transform.SetParent(tower.transform);
+            w1.transform.localPosition = new Vector3(0, 6.5f, 3f);
+            w1.transform.localScale = new Vector3(6f, 1f, 0.2f);
+            w1.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
 
-        // Mái che (chóp nghiêng)
-        GameObject roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        roof.transform.SetParent(tower.transform);
-        roof.transform.localPosition = new Vector3(0, 9f, 0);
-        roof.transform.localScale = new Vector3(7f, 0.4f, 7f);
-        roof.transform.localRotation = Quaternion.Euler(10, 0, 0);
-        roof.GetComponent<Renderer>().material = MaterialLibrary.ThatchRoof();
+            GameObject w2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            w2.transform.SetParent(tower.transform);
+            w2.transform.localPosition = new Vector3(0, 6.5f, -3f);
+            w2.transform.localScale = new Vector3(6f, 1f, 0.2f);
+            w2.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
 
-        // Thang
-        GameObject ladder = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        ladder.transform.SetParent(tower.transform);
-        ladder.transform.localPosition = new Vector3(0, 3f, -2.5f);
-        ladder.transform.localScale = new Vector3(1.5f, 6f, 0.2f);
-        ladder.transform.localRotation = Quaternion.Euler(15, 0, 0);
-        ladder.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
+            // Mái che (chóp nghiêng)
+            GameObject roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            roof.transform.SetParent(tower.transform);
+            roof.transform.localPosition = new Vector3(0, 9f, 0);
+            roof.transform.localScale = new Vector3(7f, 0.4f, 7f);
+            roof.transform.localRotation = Quaternion.Euler(10, 0, 0);
+            roof.GetComponent<Renderer>().material = MaterialLibrary.ThatchRoof();
+
+            // Thang
+            GameObject ladder = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            ladder.transform.SetParent(tower.transform);
+            ladder.transform.localPosition = new Vector3(0, 3f, -2.5f);
+            ladder.transform.localScale = new Vector3(1.5f, 6f, 0.2f);
+            ladder.transform.localRotation = Quaternion.Euler(15, 0, 0);
+            ladder.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
+        }
     }
 
     private void BuildStiltHouse(Vector3 pos)
     {
-        GameObject house = new GameObject("StiltHouse_Voxel");
-        house.transform.position = pos;
-
-        // Cột nhà (Vuông)
-        for(int x = -1; x <= 1; x+=2) {
-            for(int z = -1; z <= 1; z+=2) {
-                GameObject p = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                p.transform.SetParent(house.transform);
-                p.transform.localPosition = new Vector3(x * 3f, 1.5f, z * 4f);
-                p.transform.localScale = new Vector3(0.4f, 3f, 0.4f);
-                p.GetComponent<Renderer>().material = MaterialLibrary.WoodLog();
-            }
-        }
-
-        // Sàn nhà
-        GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        floor.transform.SetParent(house.transform);
-        floor.transform.localPosition = new Vector3(0, 3f, 0);
-        floor.transform.localScale = new Vector3(7.5f, 0.3f, 9.5f);
-        floor.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
-
-        // Tường (Tạo 4 bức tường riêng biệt để có Voxel feel)
-        CreateVoxelWall(house.transform, new Vector3(3.5f, 4.5f, 0), new Vector3(0.3f, 3f, 8.5f));
-        CreateVoxelWall(house.transform, new Vector3(-3.5f, 4.5f, 0), new Vector3(0.3f, 3f, 8.5f));
-        CreateVoxelWall(house.transform, new Vector3(0, 4.5f, 4.25f), new Vector3(7.3f, 3f, 0.3f));
-        CreateVoxelWall(house.transform, new Vector3(0, 4.5f, -4.25f), new Vector3(7.3f, 3f, 0.3f));
-
-        // Mái ngói Voxel xếp lớp (Dốc xuống 2 bên)
-        for (int i = 0; i < 5; i++)
+        if (stiltHouseModel != null)
         {
-            // Mái phải
-            GameObject roofR = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            roofR.transform.SetParent(house.transform);
-            roofR.transform.localPosition = new Vector3(0.5f + i * 0.7f, 7f - i * 0.5f, 0);
-            roofR.transform.localScale = new Vector3(0.8f, 0.4f, 10f);
-            roofR.transform.localRotation = Quaternion.Euler(0, 0, 30);
-            roofR.GetComponent<Renderer>().material = MaterialLibrary.ThatchRoof();
+            GameObject house = Instantiate(stiltHouseModel);
+            house.name = "StiltHouse_3D";
+            house.transform.position = pos;
+            house.transform.localScale = Vector3.one * 1.8f;
+            AddCollidersToModel(house);
+        }
+        else
+        {
+            GameObject house = new GameObject("StiltHouse_Voxel");
+            house.transform.position = pos;
 
-            // Mái trái
-            GameObject roofL = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            roofL.transform.SetParent(house.transform);
-            roofL.transform.localPosition = new Vector3(-0.5f - i * 0.7f, 7f - i * 0.5f, 0);
-            roofL.transform.localScale = new Vector3(0.8f, 0.4f, 10f);
-            roofL.transform.localRotation = Quaternion.Euler(0, 0, -30);
-            roofL.GetComponent<Renderer>().material = MaterialLibrary.ThatchRoof();
+            // Cột nhà (Vuông)
+            for(int x = -1; x <= 1; x+=2) {
+                for(int z = -1; z <= 1; z+=2) {
+                    GameObject p = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    p.transform.SetParent(house.transform);
+                    p.transform.localPosition = new Vector3(x * 3f, 1.5f, z * 4f);
+                    p.transform.localScale = new Vector3(0.4f, 3f, 0.4f);
+                    p.GetComponent<Renderer>().material = MaterialLibrary.WoodLog();
+                }
+            }
+
+            // Sàn nhà
+            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            floor.transform.SetParent(house.transform);
+            floor.transform.localPosition = new Vector3(0, 3f, 0);
+            floor.transform.localScale = new Vector3(7.5f, 0.3f, 9.5f);
+            floor.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
+
+            // Tường (Tạo 4 bức tường riêng biệt để có Voxel feel)
+            CreateVoxelWall(house.transform, new Vector3(3.5f, 4.5f, 0), new Vector3(0.3f, 3f, 8.5f));
+            CreateVoxelWall(house.transform, new Vector3(-3.5f, 4.5f, 0), new Vector3(0.3f, 3f, 8.5f));
+            CreateVoxelWall(house.transform, new Vector3(0, 4.5f, 4.25f), new Vector3(7.3f, 3f, 0.3f));
+            CreateVoxelWall(house.transform, new Vector3(0, 4.5f, -4.25f), new Vector3(7.3f, 3f, 0.3f));
+
+            // Mái ngói Voxel xếp lớp (Dốc xuống 2 bên)
+            for (int i = 0; i < 5; i++)
+            {
+                // Mái phải
+                GameObject roofR = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                roofR.transform.SetParent(house.transform);
+                roofR.transform.localPosition = new Vector3(0.5f + i * 0.7f, 7f - i * 0.5f, 0);
+                roofR.transform.localScale = new Vector3(0.8f, 0.4f, 10f);
+                roofR.transform.localRotation = Quaternion.Euler(0, 0, 30);
+                roofR.GetComponent<Renderer>().material = MaterialLibrary.ThatchRoof();
+
+                // Mái trái
+                GameObject roofL = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                roofL.transform.SetParent(house.transform);
+                roofL.transform.localPosition = new Vector3(-0.5f - i * 0.7f, 7f - i * 0.5f, 0);
+                roofL.transform.localScale = new Vector3(0.8f, 0.4f, 10f);
+                roofL.transform.localRotation = Quaternion.Euler(0, 0, -30);
+                roofL.GetComponent<Renderer>().material = MaterialLibrary.ThatchRoof();
+            }
         }
     }
 
@@ -261,50 +314,63 @@ public class SceneBootstrapper : MonoBehaviour
 
     private void BuildPlayer()
     {
-        playerObj = new GameObject("KimDong_Player");
+        if (playerModel != null)
+        {
+            playerObj = Instantiate(playerModel);
+            playerObj.name = "KimDong_Player";
+        }
+        else
+        {
+            playerObj = new GameObject("KimDong_Player");
+        }
         playerObj.tag = "Player";
         playerObj.transform.position = new Vector3(-45, 0.9f, -45);
 
-        GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        body.name = "Body";
-        body.transform.SetParent(playerObj.transform);
-        body.transform.localPosition = Vector3.zero;
-        body.transform.localScale    = new Vector3(0.5f, 0.9f, 0.5f);
-        body.GetComponent<Renderer>().material = MaterialLibrary.Player();
-        Destroy(body.GetComponent<Collider>());
+        if (playerModel == null)
+        {
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            body.name = "Body";
+            body.transform.SetParent(playerObj.transform);
+            body.transform.localPosition = Vector3.zero;
+            body.transform.localScale    = new Vector3(0.5f, 0.9f, 0.5f);
+            body.GetComponent<Renderer>().material = MaterialLibrary.Player();
+            Destroy(body.GetComponent<Collider>());
 
-        GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        head.name = "Head";
-        head.transform.SetParent(playerObj.transform);
-        head.transform.localPosition = new Vector3(0, 1.1f, 0);
-        head.transform.localScale    = new Vector3(0.4f, 0.4f, 0.4f);
-        head.GetComponent<Renderer>().material = MaterialLibrary.Player();
-        Destroy(head.GetComponent<Collider>());
+            GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            head.name = "Head";
+            head.transform.SetParent(playerObj.transform);
+            head.transform.localPosition = new Vector3(0, 1.1f, 0);
+            head.transform.localScale    = new Vector3(0.4f, 0.4f, 0.4f);
+            head.GetComponent<Renderer>().material = MaterialLibrary.Player();
+            Destroy(head.GetComponent<Collider>());
 
-        GameObject beret = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        beret.name = "Beret";
-        beret.transform.SetParent(playerObj.transform);
-        beret.transform.localPosition = new Vector3(0, 1.35f, 0);
-        beret.transform.localScale    = new Vector3(0.42f, 0.18f, 0.42f);
-        beret.GetComponent<Renderer>().material = MaterialLibrary.Solid(new Color(0.1f, 0.4f, 0.1f));
-        Destroy(beret.GetComponent<Collider>());
+            GameObject beret = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            beret.name = "Beret";
+            beret.transform.SetParent(playerObj.transform);
+            beret.transform.localPosition = new Vector3(0, 1.35f, 0);
+            beret.transform.localScale    = new Vector3(0.42f, 0.18f, 0.42f);
+            beret.GetComponent<Renderer>().material = MaterialLibrary.Solid(new Color(0.1f, 0.4f, 0.1f));
+            Destroy(beret.GetComponent<Collider>());
 
-        AttachLimbs(playerObj.transform, MaterialLibrary.Solid(new Color(0.95f, 0.75f, 0.65f)));
-        AttachSatchel(playerObj.transform);
+            AttachLimbs(playerObj.transform, MaterialLibrary.Solid(new Color(0.95f, 0.75f, 0.65f)));
+            AttachSatchel(playerObj.transform);
+        }
 
-        CapsuleCollider col = playerObj.AddComponent<CapsuleCollider>();
+        CapsuleCollider col = playerObj.GetComponent<CapsuleCollider>() ?? playerObj.AddComponent<CapsuleCollider>();
         col.height = 1.8f;
         col.radius = 0.3f;
         col.center = new Vector3(0, 0.9f, 0);
 
-        Rigidbody rb = playerObj.AddComponent<Rigidbody>();
+        Rigidbody rb = playerObj.GetComponent<Rigidbody>() ?? playerObj.AddComponent<Rigidbody>();
         rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-        playerObj.AddComponent<Animator>();
-        playerObj.AddComponent<PlayerController>();
-        playerObj.AddComponent<PlayerInteraction>();
-        playerObj.AddComponent<DistractionSystem>();
-        playerObj.AddComponent<PlayerVisibilityCulling>();
+        Animator anim = playerObj.GetComponent<Animator>() ?? playerObj.AddComponent<Animator>();
+        if (playerController != null) anim.runtimeAnimatorController = playerController;
+
+        if (playerObj.GetComponent<PlayerController>() == null) playerObj.AddComponent<PlayerController>();
+        if (playerObj.GetComponent<PlayerInteraction>() == null) playerObj.AddComponent<PlayerInteraction>();
+        if (playerObj.GetComponent<DistractionSystem>() == null) playerObj.AddComponent<DistractionSystem>();
+        if (playerObj.GetComponent<PlayerVisibilityCulling>() == null) playerObj.AddComponent<PlayerVisibilityCulling>();
     }
 
     private void BuildEnemies()
@@ -343,73 +409,108 @@ public class SceneBootstrapper : MonoBehaviour
 
     private void BuildEscort()
     {
-        GameObject escort = new GameObject("CanBo_Escort");
-        // Giấu cán bộ ở một góc khuất gần cuối làng
+        GameObject escort;
+        if (escortModel != null)
+        {
+            escort = Instantiate(escortModel);
+            escort.name = "CanBo_Escort";
+        }
+        else
+        {
+            escort = new GameObject("CanBo_Escort");
+        }
         escort.transform.position = new Vector3(0, 0.9f, 25);
 
-        GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        body.transform.SetParent(escort.transform);
-        body.transform.localPosition = Vector3.zero;
-        body.transform.localScale    = new Vector3(0.5f, 0.9f, 0.5f);
-        body.GetComponent<Renderer>().material = MaterialLibrary.Escort();
-        Destroy(body.GetComponent<Collider>());
+        if (escortModel == null)
+        {
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            body.transform.SetParent(escort.transform);
+            body.transform.localPosition = Vector3.zero;
+            body.transform.localScale    = new Vector3(0.5f, 0.9f, 0.5f);
+            body.GetComponent<Renderer>().material = MaterialLibrary.Escort();
+            Destroy(body.GetComponent<Collider>());
 
-        GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        head.transform.SetParent(escort.transform);
-        head.transform.localPosition = new Vector3(0, 1.1f, 0);
-        head.transform.localScale    = new Vector3(0.4f, 0.4f, 0.4f);
-        head.GetComponent<Renderer>().material = MaterialLibrary.Escort();
-        Destroy(head.GetComponent<Collider>());
+            GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            head.transform.SetParent(escort.transform);
+            head.transform.localPosition = new Vector3(0, 1.1f, 0);
+            head.transform.localScale    = new Vector3(0.4f, 0.4f, 0.4f);
+            head.GetComponent<Renderer>().material = MaterialLibrary.Escort();
+            Destroy(head.GetComponent<Collider>());
 
-        AttachLimbs(escort.transform, MaterialLibrary.Solid(new Color(0.9f, 0.72f, 0.6f)));
-        CreateNonLa(escort.transform, new Vector3(0f, 1.35f, 0f), 0.55f, 0.22f);
+            AttachLimbs(escort.transform, MaterialLibrary.Solid(new Color(0.9f, 0.72f, 0.6f)));
+            CreateNonLa(escort.transform, new Vector3(0f, 1.35f, 0f), 0.55f, 0.22f);
+        }
 
-        CapsuleCollider col = escort.AddComponent<CapsuleCollider>();
+        CapsuleCollider col = escort.GetComponent<CapsuleCollider>() ?? escort.AddComponent<CapsuleCollider>();
         col.height = 1.8f;
         col.radius = 0.3f;
         col.center = new Vector3(0, 0.9f, 0);
 
-        NavMeshAgent agent = escort.AddComponent<NavMeshAgent>();
+        NavMeshAgent agent = escort.GetComponent<NavMeshAgent>() ?? escort.AddComponent<NavMeshAgent>();
         agent.height = 1.8f;
-        escort.AddComponent<Animator>();
-        escort.AddComponent<EscortTarget>();
+        
+        Animator anim = escort.GetComponent<Animator>() ?? escort.AddComponent<Animator>();
+        if (escortController != null) anim.runtimeAnimatorController = escortController;
+
+        if (escort.GetComponent<EscortTarget>() == null) escort.AddComponent<EscortTarget>();
     }
 
     private void BuildObjectives()
     {
         // Thư tình báo nhặt ngay đầu game
-        GameObject letter = new GameObject("Letter_Pickup");
-        letter.transform.position = new Vector3(-38, 0.5f, -42);
-        GameObject letterMesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        letterMesh.transform.SetParent(letter.transform);
-        letterMesh.transform.localScale = new Vector3(0.3f, 0.04f, 0.2f);
-        letterMesh.GetComponent<Renderer>().material = MaterialLibrary.Letter();
-        Destroy(letterMesh.GetComponent<Collider>());
-        BoxCollider lc = letter.AddComponent<BoxCollider>();
+        GameObject letter;
+        if (letterModel != null)
+        {
+            letter = Instantiate(letterModel);
+            letter.name = "Letter_Pickup";
+            letter.transform.position = new Vector3(-38, 0.5f, -42);
+        }
+        else
+        {
+            letter = new GameObject("Letter_Pickup");
+            letter.transform.position = new Vector3(-38, 0.5f, -42);
+            GameObject letterMesh = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            letterMesh.transform.SetParent(letter.transform);
+            letterMesh.transform.localScale = new Vector3(0.3f, 0.04f, 0.2f);
+            letterMesh.GetComponent<Renderer>().material = MaterialLibrary.Letter();
+            Destroy(letterMesh.GetComponent<Collider>());
+        }
+
+        BoxCollider lc = letter.GetComponent<BoxCollider>() ?? letter.AddComponent<BoxCollider>();
         lc.isTrigger = true;
-        lc.size      = new Vector3(0.6f, 0.8f, 0.6f);
-        letter.AddComponent<LetterPickup>();
+        lc.size      = new Vector3(1.2f, 1.2f, 1.2f); // slightly larger box for easier detection
+        if (letter.GetComponent<LetterPickup>() == null) letter.AddComponent<LetterPickup>();
 
         // Trạm kết thúc (Cờ xanh)
-        GameObject finish = new GameObject("Finish_Zone");
-        finish.transform.position = new Vector3(45, 0, 45);
-        GameObject flag = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        flag.transform.SetParent(finish.transform);
-        flag.transform.localPosition = new Vector3(0, 1f, 0);
-        flag.transform.localScale    = new Vector3(0.1f, 1f, 0.1f);
-        flag.GetComponent<Renderer>().material = MaterialLibrary.Solid(new Color(0.4f, 0.3f, 0.15f));
-        Destroy(flag.GetComponent<Collider>());
-        GameObject flagTop = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        flagTop.transform.SetParent(finish.transform);
-        flagTop.transform.localPosition = new Vector3(0.25f, 1.8f, 0);
-        flagTop.transform.localScale    = new Vector3(0.5f, 0.3f, 0.05f);
-        flagTop.GetComponent<Renderer>().material = MaterialLibrary.Checkpoint();
-        Destroy(flagTop.GetComponent<Collider>());
+        GameObject finish;
+        if (flagModel != null)
+        {
+            finish = Instantiate(flagModel);
+            finish.name = "Finish_Zone";
+            finish.transform.position = new Vector3(45, 0, 45);
+        }
+        else
+        {
+            finish = new GameObject("Finish_Zone");
+            finish.transform.position = new Vector3(45, 0, 45);
+            GameObject flag = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            flag.transform.SetParent(finish.transform);
+            flag.transform.localPosition = new Vector3(0, 1f, 0);
+            flag.transform.localScale    = new Vector3(0.1f, 1f, 0.1f);
+            flag.GetComponent<Renderer>().material = MaterialLibrary.Solid(new Color(0.4f, 0.3f, 0.15f));
+            Destroy(flag.GetComponent<Collider>());
+            GameObject flagTop = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            flagTop.transform.SetParent(finish.transform);
+            flagTop.transform.localPosition = new Vector3(0.25f, 1.8f, 0);
+            flagTop.transform.localScale    = new Vector3(0.5f, 0.3f, 0.05f);
+            flagTop.GetComponent<Renderer>().material = MaterialLibrary.Checkpoint();
+            Destroy(flagTop.GetComponent<Collider>());
+        }
 
-        SphereCollider sc = finish.AddComponent<SphereCollider>();
+        SphereCollider sc = finish.GetComponent<SphereCollider>() ?? finish.AddComponent<SphereCollider>();
         sc.radius    = 2.5f;
         sc.isTrigger = true;
-        finish.AddComponent<FinishZoneTrigger>();
+        if (finish.GetComponent<FinishZoneTrigger>() == null) finish.AddComponent<FinishZoneTrigger>();
 
         // Checkpoint giữa màn
         GameObject cp = new GameObject("Checkpoint_Mid");
@@ -523,52 +624,65 @@ public class SceneBootstrapper : MonoBehaviour
 
     private void CreateEnemy(string name, Vector3 pos, Transform[] waypoints)
     {
-        GameObject enemy = new GameObject(name);
+        GameObject enemy;
+        if (enemyModel != null)
+        {
+            enemy = Instantiate(enemyModel);
+            enemy.name = name;
+        }
+        else
+        {
+            enemy = new GameObject(name);
+        }
         enemy.transform.position = pos;
 
-        GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        body.transform.SetParent(enemy.transform);
-        body.transform.localPosition = Vector3.zero;
-        body.transform.localScale    = new Vector3(0.5f, 0.9f, 0.5f);
-        body.GetComponent<Renderer>().material = MaterialLibrary.Enemy();
-        Destroy(body.GetComponent<Collider>());
+        if (enemyModel == null)
+        {
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            body.transform.SetParent(enemy.transform);
+            body.transform.localPosition = Vector3.zero;
+            body.transform.localScale    = new Vector3(0.5f, 0.9f, 0.5f);
+            body.GetComponent<Renderer>().material = MaterialLibrary.Enemy();
+            Destroy(body.GetComponent<Collider>());
 
-        GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        head.transform.SetParent(enemy.transform);
-        head.transform.localPosition = new Vector3(0, 1.1f, 0);
-        head.transform.localScale    = new Vector3(0.4f, 0.4f, 0.4f);
-        head.GetComponent<Renderer>().material = MaterialLibrary.Enemy();
-        Destroy(head.GetComponent<Collider>());
+            GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            head.transform.SetParent(enemy.transform);
+            head.transform.localPosition = new Vector3(0, 1.1f, 0);
+            head.transform.localScale    = new Vector3(0.4f, 0.4f, 0.4f);
+            head.GetComponent<Renderer>().material = MaterialLibrary.Enemy();
+            Destroy(head.GetComponent<Collider>());
 
-        GameObject hat = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        hat.transform.SetParent(enemy.transform);
-        hat.transform.localPosition = new Vector3(0, 1.4f, 0);
-        hat.transform.localScale    = new Vector3(0.45f, 0.08f, 0.45f);
-        hat.GetComponent<Renderer>().material = MaterialLibrary.Solid(new Color(0.3f, 0.25f, 0.15f));
-        Destroy(hat.GetComponent<Collider>());
+            GameObject hat = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            hat.transform.SetParent(enemy.transform);
+            hat.transform.localPosition = new Vector3(0, 1.4f, 0);
+            hat.transform.localScale    = new Vector3(0.45f, 0.08f, 0.45f);
+            hat.GetComponent<Renderer>().material = MaterialLibrary.Solid(new Color(0.3f, 0.25f, 0.15f));
+            Destroy(hat.GetComponent<Collider>());
 
-        AttachLimbs(enemy.transform, MaterialLibrary.Solid(new Color(0.9f, 0.72f, 0.6f)));
-        AttachBackpack(enemy.transform);
-        AttachRifle(enemy.transform);
+            AttachLimbs(enemy.transform, MaterialLibrary.Solid(new Color(0.9f, 0.72f, 0.6f)));
+            AttachBackpack(enemy.transform);
+            AttachRifle(enemy.transform);
 
-        GameObject direction = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        direction.transform.SetParent(enemy.transform);
-        direction.transform.localPosition = new Vector3(0, 0.8f, 0.35f);
-        direction.transform.localScale    = new Vector3(0.1f, 0.1f, 0.25f);
-        direction.GetComponent<Renderer>().material = MaterialLibrary.Solid(Color.white);
-        Destroy(direction.GetComponent<Collider>());
+            GameObject direction = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            direction.transform.SetParent(enemy.transform);
+            direction.transform.localPosition = new Vector3(0, 0.8f, 0.35f);
+            direction.transform.localScale    = new Vector3(0.1f, 0.1f, 0.25f);
+            direction.GetComponent<Renderer>().material = MaterialLibrary.Solid(Color.white);
+            Destroy(direction.GetComponent<Collider>());
+        }
 
-        CapsuleCollider col = enemy.AddComponent<CapsuleCollider>();
+        CapsuleCollider col = enemy.GetComponent<CapsuleCollider>() ?? enemy.AddComponent<CapsuleCollider>();
         col.height = 1.8f;
         col.radius = 0.3f;
         col.center = new Vector3(0, 0.9f, 0);
 
-        NavMeshAgent agent = enemy.AddComponent<NavMeshAgent>();
+        NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>() ?? enemy.AddComponent<NavMeshAgent>();
         agent.height = 1.8f;
         agent.radius = 0.3f;
         agent.speed = 3.5f;
 
-        enemy.AddComponent<Animator>();
+        Animator anim = enemy.GetComponent<Animator>() ?? enemy.AddComponent<Animator>();
+        if (enemyController != null) anim.runtimeAnimatorController = enemyController;
 
         GameObject canvasObj = new GameObject("DetectionCanvas");
         canvasObj.transform.SetParent(enemy.transform);
@@ -604,14 +718,13 @@ public class SceneBootstrapper : MonoBehaviour
         SetPrivateField(gaugeUI, "gaugeRoot", gaugeBg);
         SetPrivateField(gaugeUI, "fillImage", fillImg);
 
-        enemy.AddComponent<EnemySoundDetection>();
-        EnemyVision vision = enemy.AddComponent<EnemyVision>();
-        // Set obstacle and player masks via reflection (must cast int to LayerMask)
+        if (enemy.GetComponent<EnemySoundDetection>() == null) enemy.AddComponent<EnemySoundDetection>();
+        EnemyVision vision = enemy.GetComponent<EnemyVision>() ?? enemy.AddComponent<EnemyVision>();
         LayerMask defaultMask = LayerMask.GetMask("Default");
         SetPrivateField(vision, "obstacleMask", defaultMask);
         SetPrivateField(vision, "playerMask", defaultMask);
-        enemy.AddComponent<EnemyVisionCone>();
-        EnemyAI ai = enemy.AddComponent<EnemyAI>();
+        if (enemy.GetComponent<EnemyVisionCone>() == null) enemy.AddComponent<EnemyVisionCone>();
+        EnemyAI ai = enemy.GetComponent<EnemyAI>() ?? enemy.AddComponent<EnemyAI>();
         ai.Waypoints = waypoints;
         ai.WaypointWaitTime = 2f;
 
@@ -651,15 +764,29 @@ public class SceneBootstrapper : MonoBehaviour
         int bushCount = 8;
         for (int i = 0; i < bushCount; i++)
         {
-            GameObject bush = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            bush.transform.SetParent(zone.transform);
-            float rx = Random.Range(-size.x * 0.45f, size.x * 0.45f);
-            float rz = Random.Range(-size.z * 0.45f, size.z * 0.45f);
-            bush.transform.localPosition = new Vector3(rx, 0.4f, rz);
-            float s = Random.Range(0.6f, 1.1f);
-            bush.transform.localScale    = new Vector3(s, s * 0.7f, s);
-            bush.GetComponent<Renderer>().material = MaterialLibrary.Bush();
-            Destroy(bush.GetComponent<Collider>());
+            GameObject bush;
+            if (bushModel != null)
+            {
+                bush = Instantiate(bushModel);
+                bush.transform.SetParent(zone.transform);
+                float rx = Random.Range(-size.x * 0.45f, size.x * 0.45f);
+                float rz = Random.Range(-size.z * 0.45f, size.z * 0.45f);
+                bush.transform.localPosition = new Vector3(rx, 0f, rz);
+                float s = Random.Range(0.8f, 1.3f);
+                bush.transform.localScale = new Vector3(s, s, s);
+            }
+            else
+            {
+                bush = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                bush.transform.SetParent(zone.transform);
+                float rx = Random.Range(-size.x * 0.45f, size.x * 0.45f);
+                float rz = Random.Range(-size.z * 0.45f, size.z * 0.45f);
+                bush.transform.localPosition = new Vector3(rx, 0.4f, rz);
+                float s = Random.Range(0.6f, 1.1f);
+                bush.transform.localScale    = new Vector3(s, s * 0.7f, s);
+                bush.GetComponent<Renderer>().material = MaterialLibrary.Bush();
+                Destroy(bush.GetComponent<Collider>());
+            }
         }
 
         BoxCollider col = zone.AddComponent<BoxCollider>();
@@ -683,40 +810,51 @@ public class SceneBootstrapper : MonoBehaviour
 
     private void SpawnTree(Vector3 pos)
     {
-        GameObject tree = new GameObject("Tree_Voxel");
-        tree.transform.position = pos;
-
-        // Thân cây (Cube)
-        GameObject trunk = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        trunk.transform.SetParent(tree.transform);
-        trunk.transform.localPosition = new Vector3(0, 1.5f, 0);
-        trunk.transform.localScale    = new Vector3(0.5f, 3f, 0.5f);
-        trunk.GetComponent<Renderer>().material = MaterialLibrary.TreeTrunk();
-        
-        BoxCollider tc = trunk.GetComponent<BoxCollider>();
-        if (tc) { tc.size = new Vector3(1f, 1f, 1f); } // Collider bao quanh thân
-
-        // Tán lá Voxel (ghép từ nhiều cube ngẫu nhiên)
-        int leafCount = Random.Range(10, 16);
-        for(int i = 0; i < leafCount; i++)
+        if (treeModel != null)
         {
-            GameObject leaf = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            leaf.transform.SetParent(tree.transform);
-            
-            float h = Random.Range(2.5f, 4.5f);
-            float rad = Random.Range(0.2f, 1.5f);
-            float angle = Random.Range(0, 360f);
-            float lx = Mathf.Cos(angle) * rad;
-            float lz = Mathf.Sin(angle) * rad;
+            GameObject tree = Instantiate(treeModel);
+            tree.name = "Tree_3D";
+            tree.transform.position = pos;
+            tree.transform.localScale = Vector3.one * 1.5f;
+            AddCollidersToModel(tree);
+        }
+        else
+        {
+            GameObject tree = new GameObject("Tree_Voxel");
+            tree.transform.position = pos;
 
-            leaf.transform.localPosition = new Vector3(lx, h, lz);
+            // Thân cây (Cube)
+            GameObject trunk = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            trunk.transform.SetParent(tree.transform);
+            trunk.transform.localPosition = new Vector3(0, 1.5f, 0);
+            trunk.transform.localScale    = new Vector3(0.5f, 3f, 0.5f);
+            trunk.GetComponent<Renderer>().material = MaterialLibrary.TreeTrunk();
             
-            float size = Random.Range(1.2f, 2f);
-            leaf.transform.localScale = new Vector3(size, size, size);
-            leaf.transform.localRotation = Quaternion.Euler(Random.Range(0,90), Random.Range(0,90), Random.Range(0,90));
-            
-            leaf.GetComponent<Renderer>().material = MaterialLibrary.Tree();
-            Destroy(leaf.GetComponent<Collider>());
+            BoxCollider tc = trunk.GetComponent<BoxCollider>();
+            if (tc) { tc.size = new Vector3(1f, 1f, 1f); } // Collider bao quanh thân
+
+            // Tán lá Voxel (ghép từ nhiều cube ngẫu nhiên)
+            int leafCount = Random.Range(10, 16);
+            for(int i = 0; i < leafCount; i++)
+            {
+                GameObject leaf = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                leaf.transform.SetParent(tree.transform);
+                
+                float h = Random.Range(2.5f, 4.5f);
+                float rad = Random.Range(0.2f, 1.5f);
+                float angle = Random.Range(0, 360f);
+                float lx = Mathf.Cos(angle) * rad;
+                float lz = Mathf.Sin(angle) * rad;
+
+                leaf.transform.localPosition = new Vector3(lx, h, lz);
+                
+                float size = Random.Range(1.2f, 2f);
+                leaf.transform.localScale = new Vector3(size, size, size);
+                leaf.transform.localRotation = Quaternion.Euler(Random.Range(0,90), Random.Range(0,90), Random.Range(0,90));
+                
+                leaf.GetComponent<Renderer>().material = MaterialLibrary.Tree();
+                Destroy(leaf.GetComponent<Collider>());
+            }
         }
     }
 
@@ -749,101 +887,152 @@ public class SceneBootstrapper : MonoBehaviour
 
     private void SpawnBamboo(Vector3 pos)
     {
-        GameObject group = new GameObject("Bamboo_Grove");
-        group.transform.position = pos;
-
-        int stemCount = 6;
-        for (int j = 0; j < stemCount; j++)
+        if (bambooModel != null)
         {
-            GameObject stem = new GameObject($"Bamboo_{j}");
-            stem.transform.SetParent(group.transform);
-            stem.transform.localPosition = new Vector3(Random.Range(-0.8f, 0.8f), 0f, Random.Range(-0.8f, 0.8f));
-            
-            float scaleY = Random.Range(4f, 6f);
-            float radius = Random.Range(0.05f, 0.08f);
+            GameObject bamboo = Instantiate(bambooModel);
+            bamboo.name = "Bamboo_Grove_3D";
+            bamboo.transform.position = pos;
+            bamboo.transform.localScale = Vector3.one * 1.5f;
+            AddCollidersToModel(bamboo);
+        }
+        else
+        {
+            GameObject group = new GameObject("Bamboo_Grove");
+            group.transform.position = pos;
 
-            GameObject seg = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            seg.transform.SetParent(stem.transform, false);
-            seg.transform.localPosition = new Vector3(0f, scaleY * 0.5f, 0f);
-            seg.transform.localScale = new Vector3(radius * 2f, scaleY * 0.5f, radius * 2f);
-            seg.GetComponent<Renderer>().material = MaterialLibrary.Solid(new Color(0.18f, 0.48f, 0.15f));
-            
-            CapsuleCollider cc = seg.GetComponent<CapsuleCollider>();
-            if (cc) { cc.height = scaleY; cc.radius = radius; }
+            int stemCount = 6;
+            for (int j = 0; j < stemCount; j++)
+            {
+                GameObject stem = new GameObject($"Bamboo_{j}");
+                stem.transform.SetParent(group.transform);
+                stem.transform.localPosition = new Vector3(Random.Range(-0.8f, 0.8f), 0f, Random.Range(-0.8f, 0.8f));
+                
+                float scaleY = Random.Range(4f, 6f);
+                float radius = Random.Range(0.05f, 0.08f);
 
-            GameObject leaves = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            leaves.transform.SetParent(stem.transform, false);
-            leaves.transform.localPosition = new Vector3(0f, scaleY + 0.2f, 0f);
-            leaves.transform.localScale = new Vector3(0.8f, 0.5f, 0.8f);
-            leaves.GetComponent<Renderer>().material = MaterialLibrary.Solid(new Color(0.25f, 0.55f, 0.2f));
-            Destroy(leaves.GetComponent<Collider>());
+                GameObject seg = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                seg.transform.SetParent(stem.transform, false);
+                seg.transform.localPosition = new Vector3(0f, scaleY * 0.5f, 0f);
+                seg.transform.localScale = new Vector3(radius * 2f, scaleY * 0.5f, radius * 2f);
+                seg.GetComponent<Renderer>().material = MaterialLibrary.Solid(new Color(0.18f, 0.48f, 0.15f));
+                
+                CapsuleCollider cc = seg.GetComponent<CapsuleCollider>();
+                if (cc) { cc.height = scaleY; cc.radius = radius; }
+
+                GameObject leaves = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                leaves.transform.SetParent(stem.transform, false);
+                leaves.transform.localPosition = new Vector3(0f, scaleY + 0.2f, 0f);
+                leaves.transform.localScale = new Vector3(0.8f, 0.5f, 0.8f);
+                leaves.GetComponent<Renderer>().material = MaterialLibrary.Solid(new Color(0.25f, 0.55f, 0.2f));
+                Destroy(leaves.GetComponent<Collider>());
+            }
         }
     }
 
     private void CreateFence(Vector3 start, Vector3 end)
     {
-        GameObject fenceGroup = new GameObject("Fence_Line");
-        fenceGroup.transform.position = start;
-
-        Vector3 dir = end - start;
-        float dist = dir.magnitude;
-        Vector3 step = dir.normalized * 2f;
-        int posts = Mathf.CeilToInt(dist / 2f);
-
-        for (int i = 0; i <= posts; i++)
+        if (fenceModel != null)
         {
-            Vector3 pos = start + step * i;
-            if (Vector3.Distance(start, pos) > dist) pos = end;
+            GameObject fenceGroup = new GameObject("Fence_Line");
+            fenceGroup.transform.position = start;
 
-            GameObject post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            post.transform.SetParent(fenceGroup.transform);
-            post.transform.position = pos + Vector3.up * 0.6f;
-            post.transform.localScale = new Vector3(0.08f, 0.6f, 0.08f);
-            post.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
-            
-            if (i < posts)
+            Vector3 dir = end - start;
+            float dist = dir.magnitude;
+            Vector3 step = dir.normalized * 2f;
+            int posts = Mathf.CeilToInt(dist / 2f);
+
+            for (int i = 0; i <= posts; i++)
             {
-                GameObject bar = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                bar.transform.SetParent(fenceGroup.transform);
-                Vector3 nextPos = start + step * (i + 1);
-                if (Vector3.Distance(start, nextPos) > dist) nextPos = end;
+                Vector3 pos = start + step * i;
+                if (Vector3.Distance(start, pos) > dist) pos = end;
 
-                bar.transform.position = (pos + nextPos) * 0.5f + Vector3.up * 0.8f;
-                Vector3 barDir = nextPos - pos;
-                bar.transform.rotation = Quaternion.LookRotation(barDir);
-                bar.transform.localScale = new Vector3(0.04f, 0.04f, barDir.magnitude);
-                bar.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
-                Destroy(bar.GetComponent<Collider>());
+                GameObject post = Instantiate(fenceModel);
+                post.transform.SetParent(fenceGroup.transform);
+                post.transform.position = pos;
+                
+                if (dir.sqrMagnitude > 0.01f)
+                    post.transform.rotation = Quaternion.LookRotation(dir);
+
+                post.transform.localScale = Vector3.one * 1.5f;
+                AddCollidersToModel(post);
+            }
+        }
+        else
+        {
+            GameObject fenceGroup = new GameObject("Fence_Line");
+            fenceGroup.transform.position = start;
+
+            Vector3 dir = end - start;
+            float dist = dir.magnitude;
+            Vector3 step = dir.normalized * 2f;
+            int posts = Mathf.CeilToInt(dist / 2f);
+
+            for (int i = 0; i <= posts; i++)
+            {
+                Vector3 pos = start + step * i;
+                if (Vector3.Distance(start, pos) > dist) pos = end;
+
+                GameObject post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                post.transform.SetParent(fenceGroup.transform);
+                post.transform.position = pos + Vector3.up * 0.6f;
+                post.transform.localScale = new Vector3(0.08f, 0.6f, 0.08f);
+                post.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
+                
+                if (i < posts)
+                {
+                    GameObject bar = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    bar.transform.SetParent(fenceGroup.transform);
+                    Vector3 nextPos = start + step * (i + 1);
+                    if (Vector3.Distance(start, nextPos) > dist) nextPos = end;
+
+                    bar.transform.position = (pos + nextPos) * 0.5f + Vector3.up * 0.8f;
+                    Vector3 barDir = nextPos - pos;
+                    bar.transform.rotation = Quaternion.LookRotation(barDir);
+                    bar.transform.localScale = new Vector3(0.04f, 0.04f, barDir.magnitude);
+                    bar.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
+                    Destroy(bar.GetComponent<Collider>());
+                }
             }
         }
     }
 
     private void SpawnLantern(Vector3 pos)
     {
-        GameObject lantern = new GameObject("Lantern");
-        lantern.transform.position = pos;
+        GameObject lantern;
+        if (lanternModel != null)
+        {
+            lantern = Instantiate(lanternModel);
+            lantern.name = "Lantern_3D";
+            lantern.transform.position = pos;
+            lantern.transform.localScale = Vector3.one * 1.2f;
+        }
+        else
+        {
+            lantern = new GameObject("Lantern");
+            lantern.transform.position = pos;
 
-        GameObject post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        post.transform.SetParent(lantern.transform);
-        post.transform.localPosition = new Vector3(0, 1.2f, 0);
-        post.transform.localScale = new Vector3(0.08f, 1.2f, 0.08f);
-        post.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
+            GameObject post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            post.transform.SetParent(lantern.transform);
+            post.transform.localPosition = new Vector3(0, 1.2f, 0);
+            post.transform.localScale = new Vector3(0.08f, 1.2f, 0.08f);
+            post.GetComponent<Renderer>().material = MaterialLibrary.WoodPlank();
 
-        GameObject glass = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        glass.transform.SetParent(lantern.transform);
-        glass.transform.localPosition = new Vector3(0.3f, 2.2f, 0);
-        glass.transform.localScale = new Vector3(0.2f, 0.3f, 0.2f);
-        glass.GetComponent<Renderer>().material = MaterialLibrary.LanternGlow();
-        Destroy(glass.GetComponent<Collider>());
+            GameObject glass = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            glass.transform.SetParent(lantern.transform);
+            glass.transform.localPosition = new Vector3(0.3f, 2.2f, 0);
+            glass.transform.localScale = new Vector3(0.2f, 0.3f, 0.2f);
+            glass.GetComponent<Renderer>().material = MaterialLibrary.LanternGlow();
+            Destroy(glass.GetComponent<Collider>());
+        }
 
         GameObject lightObj = new GameObject("PointLight");
-        lightObj.transform.SetParent(glass.transform);
-        lightObj.transform.localPosition = Vector3.zero;
+        lightObj.transform.SetParent(lantern.transform);
+        lightObj.transform.localPosition = new Vector3(0, 2f, 0);
         Light l = lightObj.AddComponent<Light>();
         l.type = LightType.Point;
         l.color = new Color(1f, 0.75f, 0.3f);
         l.range = 10f;
-        l.intensity = 2f;
+        l.intensity = 3f;
     }
 
     private void AttachLimbs(Transform parent, Material skinMat)
@@ -978,6 +1167,23 @@ public class SceneBootstrapper : MonoBehaviour
             nmSurf.collectObjects  = CollectObjects.All;
             nmSurf.useGeometry     = NavMeshCollectGeometry.PhysicsColliders;
             nmSurf.BuildNavMesh();
+        }
+    }
+
+    private void AddCollidersToModel(GameObject go)
+    {
+        MeshRenderer[] renderers = go.GetComponentsInChildren<MeshRenderer>();
+        foreach (var r in renderers)
+        {
+            if (r.gameObject.GetComponent<Collider>() == null)
+            {
+                MeshFilter mf = r.gameObject.GetComponent<MeshFilter>();
+                if (mf != null && mf.sharedMesh != null)
+                {
+                    MeshCollider mc = r.gameObject.AddComponent<MeshCollider>();
+                    mc.sharedMesh = mf.sharedMesh;
+                }
+            }
         }
     }
 }

@@ -4,6 +4,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.InputSystem.UI;
+using UnityEditor.Animations;
+using System.IO;
 
 /// <summary>
 /// Editor utility to set up the Level_01 scene properly.
@@ -41,6 +43,28 @@ public class SceneSetupEditor : EditorWindow
         UnityEditor.SceneManagement.EditorSceneManager.SaveOpenScenes();
 
         Debug.Log("[SceneSetup] Scene setup complete! Press Play to start the game.");
+    }
+
+    [MenuItem("KimDong/List Model Animations")]
+    public static void ListAnimations()
+    {
+        string[] models = {
+            "Assets/Models/Characters/KimDong.glb",
+            "Assets/Models/Characters/FrenchSoldier.glb",
+            "Assets/Models/Characters/CanBo.glb"
+        };
+        foreach (var path in models)
+        {
+            Debug.Log($"--- Animations in {path} ---");
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(path);
+            foreach (var asset in assets)
+            {
+                if (asset is AnimationClip)
+                {
+                    Debug.Log($"Clip name: {asset.name}");
+                }
+            }
+        }
     }
 
     private static void EnsureTag(string tag)
@@ -135,15 +159,239 @@ public class SceneSetupEditor : EditorWindow
         if (bootstrapper.GetComponent<GameOverUI>() == null)
             bootstrapper.gameObject.AddComponent<GameOverUI>();
 
-        // Set buildOnStart = true so the scene builds when Play is pressed
+        // 1. Find GLB Assets
+        GameObject playerModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Characters/KimDong.glb");
+        GameObject enemyModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Characters/FrenchSoldier.glb");
+        GameObject escortModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Characters/CanBo.glb");
+
+        GameObject stiltHouseModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/StiltHouse.glb");
+        GameObject watchtowerModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/Watchtower.glb");
+        GameObject mountainModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/Mountain.glb");
+        GameObject bushModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/JungleBush.glb");
+        GameObject treeModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/JungleTree.glb");
+        GameObject bambooModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/BambooGrove.glb");
+        GameObject fenceModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/FencePost.glb");
+
+        GameObject lanternModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Props/Lantern.glb");
+        GameObject letterModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Props/Letter.glb");
+        GameObject flagModel = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Props/RevFlag.glb");
+
+        // 2. Generate Animator Controllers programmatically
+        Object[] playerAssets = playerModel != null ? AssetDatabase.LoadAllAssetsAtPath("Assets/Models/Characters/KimDong.glb") : new Object[0];
+        Object[] enemyAssets = enemyModel != null ? AssetDatabase.LoadAllAssetsAtPath("Assets/Models/Characters/FrenchSoldier.glb") : new Object[0];
+        Object[] escortAssets = escortModel != null ? AssetDatabase.LoadAllAssetsAtPath("Assets/Models/Characters/CanBo.glb") : new Object[0];
+
+        AnimatorController playerCtrl = playerModel != null ? CreateKimDongController(playerAssets) : null;
+        AnimatorController enemyCtrl = enemyModel != null ? CreateEnemyController(enemyAssets) : null;
+        AnimatorController escortCtrl = escortModel != null ? CreateEscortController(escortAssets) : null;
+
+        // 3. Assign properties to SceneBootstrapper
         var so = new SerializedObject(bootstrapper);
-        var prop = so.FindProperty("buildOnStart");
-        if (prop != null)
+        so.FindProperty("buildOnStart").boolValue = true;
+
+        so.FindProperty("playerModel").objectReferenceValue = playerModel;
+        so.FindProperty("enemyModel").objectReferenceValue = enemyModel;
+        so.FindProperty("escortModel").objectReferenceValue = escortModel;
+
+        so.FindProperty("stiltHouseModel").objectReferenceValue = stiltHouseModel;
+        so.FindProperty("watchtowerModel").objectReferenceValue = watchtowerModel;
+        so.FindProperty("mountainModel").objectReferenceValue = mountainModel;
+        so.FindProperty("bushModel").objectReferenceValue = bushModel;
+        so.FindProperty("treeModel").objectReferenceValue = treeModel;
+        so.FindProperty("bambooModel").objectReferenceValue = bambooModel;
+        so.FindProperty("fenceModel").objectReferenceValue = fenceModel;
+
+        so.FindProperty("lanternModel").objectReferenceValue = lanternModel;
+        so.FindProperty("letterModel").objectReferenceValue = letterModel;
+        so.FindProperty("flagModel").objectReferenceValue = flagModel;
+
+        so.FindProperty("playerController").objectReferenceValue = playerCtrl;
+        so.FindProperty("enemyController").objectReferenceValue = enemyCtrl;
+        so.FindProperty("escortController").objectReferenceValue = escortCtrl;
+
+        so.ApplyModifiedProperties();
+
+        Debug.Log("[SceneSetup] Auto-configured SceneBootstrapper with GLB models and Animator Controllers.");
+    }
+
+    private static AnimationClip FindClip(Object[] assets, params string[] keywords)
+    {
+        foreach (var asset in assets)
         {
-            prop.boolValue = true;
-            so.ApplyModifiedProperties();
+            if (asset is AnimationClip clip)
+            {
+                foreach (var keyword in keywords)
+                {
+                    if (clip.name.ToLower().Contains(keyword.ToLower()))
+                    {
+                        return clip;
+                    }
+                }
+            }
+        }
+        // Fallback to first clip that doesn't start with double underscore
+        foreach (var asset in assets)
+        {
+            if (asset is AnimationClip clip && !clip.name.StartsWith("__"))
+            {
+                return clip;
+            }
+        }
+        return null;
+    }
+
+    private static AnimatorController CreateKimDongController(Object[] assets)
+    {
+        string path = "Assets/Models/Characters/KimDongController.controller";
+        AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(path);
+
+        controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
+        controller.AddParameter("IsHidden", AnimatorControllerParameterType.Bool);
+        controller.AddParameter("Die", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("PlayingFlute", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("ChoppingWood", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("HerdingBuffalo", AnimatorControllerParameterType.Trigger);
+
+        var rootStateMachine = controller.layers[0].stateMachine;
+
+        AnimationClip idleClip = FindClip(assets, "idle");
+        AnimationClip walkClip = FindClip(assets, "walk");
+        AnimationClip runClip = FindClip(assets, "run");
+        AnimationClip dieClip = FindClip(assets, "die", "death");
+        AnimationClip fluteClip = FindClip(assets, "flute", "play");
+        AnimationClip woodClip = FindClip(assets, "wood", "chop");
+        AnimationClip buffaloClip = FindClip(assets, "buffalo", "herd");
+
+        // 1. Locomotion Blend Tree
+        var locomotionState = rootStateMachine.AddState("Locomotion");
+        BlendTree blendTree;
+        controller.CreateBlendTreeInController("LocomotionTree", out blendTree, 0);
+        locomotionState.motion = blendTree;
+        blendTree.blendParameter = "Speed";
+
+        if (idleClip != null) blendTree.AddChild(idleClip, 0f);
+        if (walkClip != null) blendTree.AddChild(walkClip, 0.5f);
+        if (runClip != null) blendTree.AddChild(runClip, 1.0f);
+
+        rootStateMachine.defaultState = locomotionState;
+
+        // 2. Disguise States
+        if (fluteClip != null)
+        {
+            var state = rootStateMachine.AddState("PlayingFlute");
+            state.motion = fluteClip;
+            var t = rootStateMachine.AddAnyStateTransition(state);
+            t.AddCondition(AnimatorConditionMode.Trigger, 0, "PlayingFlute");
+            var tBack = state.AddTransition(locomotionState);
+            tBack.hasExitTime = true;
+        }
+        if (woodClip != null)
+        {
+            var state = rootStateMachine.AddState("ChoppingWood");
+            state.motion = woodClip;
+            var t = rootStateMachine.AddAnyStateTransition(state);
+            t.AddCondition(AnimatorConditionMode.Trigger, 0, "ChoppingWood");
+            var tBack = state.AddTransition(locomotionState);
+            tBack.hasExitTime = true;
+        }
+        if (buffaloClip != null)
+        {
+            var state = rootStateMachine.AddState("HerdingBuffalo");
+            state.motion = buffaloClip;
+            var t = rootStateMachine.AddAnyStateTransition(state);
+            t.AddCondition(AnimatorConditionMode.Trigger, 0, "HerdingBuffalo");
+            var tBack = state.AddTransition(locomotionState);
+            tBack.hasExitTime = true;
         }
 
-        Debug.Log("[SceneSetup] SceneBootstrapper configured with buildOnStart=true.");
+        // 3. Die State
+        if (dieClip != null)
+        {
+            var dieState = rootStateMachine.AddState("Die");
+            dieState.motion = dieClip;
+            var t = rootStateMachine.AddAnyStateTransition(dieState);
+            t.AddCondition(AnimatorConditionMode.Trigger, 0, "Die");
+        }
+
+        return controller;
+    }
+
+    private static AnimatorController CreateEnemyController(Object[] assets)
+    {
+        string path = "Assets/Models/Characters/EnemyController.controller";
+        AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(path);
+
+        controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
+        controller.AddParameter("Die", AnimatorControllerParameterType.Trigger);
+
+        var rootStateMachine = controller.layers[0].stateMachine;
+
+        AnimationClip idleClip = FindClip(assets, "idle");
+        AnimationClip walkClip = FindClip(assets, "walk");
+        AnimationClip runClip = FindClip(assets, "run", "chase");
+        AnimationClip dieClip = FindClip(assets, "die", "death");
+
+        // Locomotion Blend Tree
+        var locomotionState = rootStateMachine.AddState("Locomotion");
+        BlendTree blendTree;
+        controller.CreateBlendTreeInController("LocomotionTree", out blendTree, 0);
+        locomotionState.motion = blendTree;
+        blendTree.blendParameter = "Speed";
+
+        if (idleClip != null) blendTree.AddChild(idleClip, 0f);
+        if (walkClip != null) blendTree.AddChild(walkClip, 0.5f);
+        if (runClip != null) blendTree.AddChild(runClip, 1.0f);
+
+        rootStateMachine.defaultState = locomotionState;
+
+        // Die State
+        if (dieClip != null)
+        {
+            var dieState = rootStateMachine.AddState("Die");
+            dieState.motion = dieClip;
+            var t = rootStateMachine.AddAnyStateTransition(dieState);
+            t.AddCondition(AnimatorConditionMode.Trigger, 0, "Die");
+        }
+
+        return controller;
+    }
+
+    private static AnimatorController CreateEscortController(Object[] assets)
+    {
+        string path = "Assets/Models/Characters/EscortController.controller";
+        AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(path);
+
+        controller.AddParameter("Waiting", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Following", AnimatorControllerParameterType.Trigger);
+        controller.AddParameter("Hiding", AnimatorControllerParameterType.Trigger);
+
+        var rootStateMachine = controller.layers[0].stateMachine;
+
+        AnimationClip idleClip = FindClip(assets, "idle", "waiting");
+        AnimationClip walkClip = FindClip(assets, "walk", "follow");
+        AnimationClip hideClip = FindClip(assets, "hide", "crouch", "idle");
+
+        var waitingState = rootStateMachine.AddState("Waiting");
+        waitingState.motion = idleClip;
+
+        var followingState = rootStateMachine.AddState("Following");
+        followingState.motion = walkClip;
+
+        var hidingState = rootStateMachine.AddState("Hiding");
+        hidingState.motion = hideClip;
+
+        // Transitions
+        var tFollow = rootStateMachine.AddAnyStateTransition(followingState);
+        tFollow.AddCondition(AnimatorConditionMode.Trigger, 0, "Following");
+
+        var tWait = rootStateMachine.AddAnyStateTransition(waitingState);
+        tWait.AddCondition(AnimatorConditionMode.Trigger, 0, "Waiting");
+
+        var tHide = rootStateMachine.AddAnyStateTransition(hidingState);
+        tHide.AddCondition(AnimatorConditionMode.Trigger, 0, "Hiding");
+
+        rootStateMachine.defaultState = waitingState;
+
+        return controller;
     }
 }
