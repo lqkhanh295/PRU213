@@ -49,6 +49,9 @@ public class SceneSetupEditor : EditorWindow
     [MenuItem("KimDong/Build Game")]
     public static void BuildGame()
     {
+        // Auto-run SetupScene to guarantee 3D model bindings are saved to Level_01 scene on disk before building
+        SetupScene();
+
         string buildPath = "Builds/Windows/KimDong.exe";
         string[] scenes = { "Assets/Level_01.unity" };
 

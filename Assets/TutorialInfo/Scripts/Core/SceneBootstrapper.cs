@@ -38,6 +38,9 @@ public class SceneBootstrapper : MonoBehaviour
 
     private void Start()
     {
+#if UNITY_EDITOR
+        AutoAssignEditorAssets();
+#endif
         if (buildOnStart) 
         {
             StartCoroutine(BuildScene());
@@ -1201,6 +1204,31 @@ public class SceneBootstrapper : MonoBehaviour
             }
         }
     }
+
+#if UNITY_EDITOR
+    private void AutoAssignEditorAssets()
+    {
+        if (playerModel == null) playerModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Characters/KimDong.glb");
+        if (enemyModel == null) enemyModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Characters/FrenchSoldier.glb");
+        if (escortModel == null) escortModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Characters/CanBo.glb");
+
+        if (stiltHouseModel == null) stiltHouseModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/StiltHouse.glb");
+        if (watchtowerModel == null) watchtowerModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/Watchtower.glb");
+        if (mountainModel == null) mountainModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/Mountain.glb");
+        if (bushModel == null) bushModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/JungleBush.glb");
+        if (treeModel == null) treeModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/JungleTree.glb");
+        if (bambooModel == null) bambooModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/BambooGrove.glb");
+        if (fenceModel == null) fenceModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Environment/FencePost.glb");
+
+        if (lanternModel == null) lanternModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Props/Lantern.glb");
+        if (letterModel == null) letterModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Props/Letter.glb");
+        if (flagModel == null) flagModel = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Props/RevFlag.glb");
+
+        if (playerController == null) playerController = UnityEditor.AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/Models/Characters/KimDongController.controller");
+        if (enemyController == null) enemyController = UnityEditor.AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/Models/Characters/EnemyController.controller");
+        if (escortController == null) escortController = UnityEditor.AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/Models/Characters/EscortController.controller");
+    }
+#endif
 }
 
 /// <summary>
