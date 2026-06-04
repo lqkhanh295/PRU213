@@ -356,15 +356,19 @@ public class SceneBootstrapper : MonoBehaviour
             AttachSatchel(playerObj.transform);
         }
 
-        CapsuleCollider col = playerObj.GetComponent<CapsuleCollider>() ?? playerObj.AddComponent<CapsuleCollider>();
+        CapsuleCollider col = playerObj.GetComponent<CapsuleCollider>();
+        if (col == null) col = playerObj.AddComponent<CapsuleCollider>();
         col.height = 1.8f;
         col.radius = 0.3f;
         col.center = new Vector3(0, 0.9f, 0);
 
-        Rigidbody rb = playerObj.GetComponent<Rigidbody>() ?? playerObj.AddComponent<Rigidbody>();
+        Rigidbody rb = playerObj.GetComponent<Rigidbody>();
+        if (rb == null) rb = playerObj.AddComponent<Rigidbody>();
         rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-        Animator anim = playerObj.GetComponent<Animator>() ?? playerObj.AddComponent<Animator>();
+        Animator anim = playerObj.GetComponent<Animator>();
+        if (anim == null) anim = playerObj.AddComponent<Animator>();
+        anim.applyRootMotion = false;
         if (playerController != null) anim.runtimeAnimatorController = playerController;
 
         if (playerObj.GetComponent<PlayerController>() == null) playerObj.AddComponent<PlayerController>();
@@ -441,15 +445,18 @@ public class SceneBootstrapper : MonoBehaviour
             CreateNonLa(escort.transform, new Vector3(0f, 1.35f, 0f), 0.55f, 0.22f);
         }
 
-        CapsuleCollider col = escort.GetComponent<CapsuleCollider>() ?? escort.AddComponent<CapsuleCollider>();
+        CapsuleCollider col = escort.GetComponent<CapsuleCollider>();
+        if (col == null) col = escort.AddComponent<CapsuleCollider>();
         col.height = 1.8f;
         col.radius = 0.3f;
         col.center = new Vector3(0, 0.9f, 0);
 
-        NavMeshAgent agent = escort.GetComponent<NavMeshAgent>() ?? escort.AddComponent<NavMeshAgent>();
+        NavMeshAgent agent = escort.GetComponent<NavMeshAgent>();
+        if (agent == null) agent = escort.AddComponent<NavMeshAgent>();
         agent.height = 1.8f;
         
-        Animator anim = escort.GetComponent<Animator>() ?? escort.AddComponent<Animator>();
+        Animator anim = escort.GetComponent<Animator>();
+        if (anim == null) anim = escort.AddComponent<Animator>();
         if (escortController != null) anim.runtimeAnimatorController = escortController;
 
         if (escort.GetComponent<EscortTarget>() == null) escort.AddComponent<EscortTarget>();
@@ -476,7 +483,8 @@ public class SceneBootstrapper : MonoBehaviour
             Destroy(letterMesh.GetComponent<Collider>());
         }
 
-        BoxCollider lc = letter.GetComponent<BoxCollider>() ?? letter.AddComponent<BoxCollider>();
+        BoxCollider lc = letter.GetComponent<BoxCollider>();
+        if (lc == null) lc = letter.AddComponent<BoxCollider>();
         lc.isTrigger = true;
         lc.size      = new Vector3(1.2f, 1.2f, 1.2f); // slightly larger box for easier detection
         if (letter.GetComponent<LetterPickup>() == null) letter.AddComponent<LetterPickup>();
@@ -507,7 +515,8 @@ public class SceneBootstrapper : MonoBehaviour
             Destroy(flagTop.GetComponent<Collider>());
         }
 
-        SphereCollider sc = finish.GetComponent<SphereCollider>() ?? finish.AddComponent<SphereCollider>();
+        SphereCollider sc = finish.GetComponent<SphereCollider>();
+        if (sc == null) sc = finish.AddComponent<SphereCollider>();
         sc.radius    = 2.5f;
         sc.isTrigger = true;
         if (finish.GetComponent<FinishZoneTrigger>() == null) finish.AddComponent<FinishZoneTrigger>();
@@ -574,7 +583,8 @@ public class SceneBootstrapper : MonoBehaviour
         var urpData = cam.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
         if (urpData != null) urpData.renderPostProcessing = true;
 
-        CameraController cc = cam.GetComponent<CameraController>() ?? cam.gameObject.AddComponent<CameraController>();
+        CameraController cc = cam.GetComponent<CameraController>();
+        if (cc == null) cc = cam.gameObject.AddComponent<CameraController>();
         if (playerObj != null) SetPrivateField(cc, "target", playerObj.transform);
         LayerMask camCollisionMask = LayerMask.GetMask("Default");
         SetPrivateField(cc, "collisionMask", camCollisionMask);
@@ -671,17 +681,20 @@ public class SceneBootstrapper : MonoBehaviour
             Destroy(direction.GetComponent<Collider>());
         }
 
-        CapsuleCollider col = enemy.GetComponent<CapsuleCollider>() ?? enemy.AddComponent<CapsuleCollider>();
+        CapsuleCollider col = enemy.GetComponent<CapsuleCollider>();
+        if (col == null) col = enemy.AddComponent<CapsuleCollider>();
         col.height = 1.8f;
         col.radius = 0.3f;
         col.center = new Vector3(0, 0.9f, 0);
 
-        NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>() ?? enemy.AddComponent<NavMeshAgent>();
+        NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
+        if (agent == null) agent = enemy.AddComponent<NavMeshAgent>();
         agent.height = 1.8f;
         agent.radius = 0.3f;
         agent.speed = 3.5f;
 
-        Animator anim = enemy.GetComponent<Animator>() ?? enemy.AddComponent<Animator>();
+        Animator anim = enemy.GetComponent<Animator>();
+        if (anim == null) anim = enemy.AddComponent<Animator>();
         if (enemyController != null) anim.runtimeAnimatorController = enemyController;
 
         GameObject canvasObj = new GameObject("DetectionCanvas");
@@ -719,12 +732,14 @@ public class SceneBootstrapper : MonoBehaviour
         SetPrivateField(gaugeUI, "fillImage", fillImg);
 
         if (enemy.GetComponent<EnemySoundDetection>() == null) enemy.AddComponent<EnemySoundDetection>();
-        EnemyVision vision = enemy.GetComponent<EnemyVision>() ?? enemy.AddComponent<EnemyVision>();
+        EnemyVision vision = enemy.GetComponent<EnemyVision>();
+        if (vision == null) vision = enemy.AddComponent<EnemyVision>();
         LayerMask defaultMask = LayerMask.GetMask("Default");
         SetPrivateField(vision, "obstacleMask", defaultMask);
         SetPrivateField(vision, "playerMask", defaultMask);
         if (enemy.GetComponent<EnemyVisionCone>() == null) enemy.AddComponent<EnemyVisionCone>();
-        EnemyAI ai = enemy.GetComponent<EnemyAI>() ?? enemy.AddComponent<EnemyAI>();
+        EnemyAI ai = enemy.GetComponent<EnemyAI>();
+        if (ai == null) ai = enemy.AddComponent<EnemyAI>();
         ai.Waypoints = waypoints;
         ai.WaypointWaitTime = 2f;
 
